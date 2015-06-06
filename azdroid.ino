@@ -50,7 +50,8 @@ public:
          * @brief Class constructor.
      */
     Robot(): 
-      leftMotor(LEFT_MOTOR_INIT), rightMotor(RIGHT_MOTOR_INIT), distanceSensor(DISTANCE_SENSOR_INIT), distanceAverage(TOO_CLOSE * 10)
+      leftMotor(LEFT_MOTOR_INIT), rightMotor(RIGHT_MOTOR_INIT), 
+      distanceSensor(DISTANCE_SENSOR_INIT), distanceAverage(TOO_CLOSE * 10)
       {
         initialize();
       }
