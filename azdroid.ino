@@ -23,7 +23,7 @@
 
 #ifdef ENABLE_L298N_MOTOR_DRIVER
 #include "l298n_motor_driver.h"
-// #define LEFT_MOTOR_INIT 9,11,12
+
 #define LEFT_MOTOR_INIT 12,13,9
 #define RIGHT_MOTOR_INIT 7,8,11
 #endif
@@ -197,7 +197,7 @@ private:
     
     void turn(Motor &motor1, Motor &motor2)
     {
-      motor1.setSpeed(-SPEED);
+      motor1.setSpeed(-SPEEDz);
       motor2.setSpeed(SPEED);
     }
   };
