@@ -73,20 +73,25 @@ public:
       unsigned long currentTime = millis();
       int distance = distanceAverage.add(distanceSensor.getDistance());
 
-      if (moving()) {
-        if (obstacleAhead(distance)){
+      if (moving()) 
+      {
+        if (obstacleAhead(distance))
+        {
           //stop();
           reverse(currentTime);
           turn(currentTime);
         }
       } 
-      else if(reversing()){
-        if (doneReversing(currentTime)){
+      else if(reversing())
+      {
+        if (doneReversing(currentTime))
+        {
           // stop();
           turn(currentTime);
         }
       } 
-      else if (turning()) {
+      else if (turning())
+      {
         if (doneTurning(currentTime, distance))
           move();
       }
@@ -135,7 +140,8 @@ protected:
       endStateTime = currentTime + random(500, 1000);
     }
 
-    void reverse(unsigned long currentTime){
+    void reverse(unsigned long currentTime)
+    {
       leftMotor.setSpeed(-SPEED);
       rightMotor.setSpeed(-SPEED);
       state = stateReversing;
@@ -181,8 +187,7 @@ private:
     DistanceSensor distanceSensor;
     MovingAverage<unsigned int, 3> distanceAverage;
     // RemoteControl remoteControl;
-    enum state_t { 
-      stateStopped, stateMoving, stateTurning, stateRemote, stateReversing     };
+    enum state_t {stateStopped, stateMoving, stateTurning, stateRemote, stateReversing};
     state_t state;
     unsigned long endStateTime;
     
@@ -198,7 +203,7 @@ private:
     
     void turn(Motor &motor1, Motor &motor2)
     {
-      motor1.setSpeed(-SPEEDz);
+      motor1.setSpeed(-SPEED);
       motor2.setSpeed(SPEED);
     }
   };
