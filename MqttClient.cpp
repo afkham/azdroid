@@ -258,10 +258,10 @@ boolean Azdroid::MqttClient::loop() {
                     msgId = (buffer[llen+3+tl]<<8)+buffer[llen+3+tl+1];
                     payload = buffer+llen+3+tl+2;
                     if(callback != NULL) {
-                       Serial.println("1- Callback called");
+                       // Serial.println("1- Callback called");
                        callback(topic,payload,len-llen-3-tl-2);
                     } else if (callbackObj != NULL) {
-                       Serial.println("2- Callback called");
+                       // Serial.println("2- Callback called");
                        callbackObj->callback(topic,payload,len-llen-3-tl-2);
                     }
                     
@@ -275,10 +275,10 @@ boolean Azdroid::MqttClient::loop() {
                   } else {
                     payload = buffer+llen+3+tl;
                     if(callback != NULL) {
-                       Serial.println("1- Callback called");
+                       // Serial.println("1- Callback called");
                        callback(topic,payload,len-llen-3-tl);
                     } else if (callbackObj != NULL) {
-                       Serial.println("2- Callback called");
+                       // Serial.println("2- Callback called");
                        callbackObj->callback(topic,payload,len-llen-3-tl-2);
                     }
                   }

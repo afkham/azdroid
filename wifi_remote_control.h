@@ -4,26 +4,37 @@ namespace Azdroid
 {
 
     
+    
     class RemoteControlCallback : public Callback
     {
     public:
         // Callback function
-        virtual void callback(char* topic, byte* payload, unsigned int length) {
+        virtual void callback(char* topic, byte* payload, unsigned int length) 
+        {
           // In order to republish this payload, a copy must be made
           // as the orignal payload buffer will be overwritten whilst
           // constructing the PUBLISH packet.
           
           // Allocate the correct amount of memory for the payload copy
-          byte* p = (byte*)malloc(length);
+          recdMsg = payload[0];
           // Copy the payload to the new buffer
-          memcpy(p,payload,length);
+          //memcpy(recdMsg,payload,length);
           // client.publish("outTopic", p, length);
           // client.publish("outTopic", "Wuhu... got a message");
           // Free the memory
-          free(p);
+          
+          // free(recdMsg);
           
           Serial.println("+++ Received message");
         }
+        
+        char getMessage()
+        {
+           return recdMsg; 
+        }
+        
+      private:
+        char recdMsg;  
     };
     
     class RemoteControl : public RemoteControlDriver
@@ -83,7 +94,7 @@ namespace Azdroid
             cmd.key = command_t::keyNone;
             client.loop();
             
-            char ch = '8';
+            char ch = callback.getMessage();
             switch (ch) {
                 case '8': // up
                     cmd.goForward();

@@ -91,7 +91,7 @@ public:
     }
 
     /*
-         * @brief Update the state of the robot based on input from sensor and remote control.
+     * @brief Update the state of the robot based on input from sensor and remote control.
      *  Must be called repeatedly while the robot is in operation.
      */
     void run()
@@ -100,6 +100,22 @@ public:
       {
         RemoteControlDriver::command_t remoteCmd;
         bool haveRemoteCmd = remoteControl.getRemoteCommand(remoteCmd);
+        if(haveRemoteCmd)
+        {
+           switch (remoteCmd.key) {
+            case RemoteControlDriver::command_t::keyF1:
+                // start "roomba" mode
+                move();
+                break;
+            case RemoteControlDriver::command_t::keyNone:
+                // this is a directional command
+                leftMotor.setSpeed(remoteCmd.left);
+                rightMotor.setSpeed(remoteCmd.right);
+                break;
+            default:
+                break;
+           }
+        }
       } 
       else
       {  
