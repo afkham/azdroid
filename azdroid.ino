@@ -109,8 +109,8 @@ public:
                 break;
             case RemoteControlDriver::command_t::keyNone:
                 // this is a directional command
-                leftMotor.setSpeed(remoteCmd.left);
-                rightMotor.setSpeed(remoteCmd.right);
+                // leftMotor.setSpeed(remoteCmd.left);
+                // rightMotor.setSpeed(remoteCmd.right);
                 break;
             default:
                 break;
