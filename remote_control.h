@@ -72,5 +72,7 @@ namespace Azdroid
          * @return true if a remote command is available, false if not.
          */
         virtual bool getRemoteCommand(command_t& cmd) = 0;
+        
+        virtual void initialize();
     };
 };

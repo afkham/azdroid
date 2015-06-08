@@ -10,7 +10,7 @@
 #define ENABLE_NEWPING_DISTANCE_SENSOR_DRIVER
 
 // Remote control:
-//#define ENABLE_WIFI_REMOTE_CONTROL_DRIVER
+#define ENABLE_WIFI_REMOTE_CONTROL_DRIVER
 
 // constants
 #define TOO_CLOSE 10                    /**< distance to obstacle in centimeters */
@@ -22,24 +22,41 @@
 #define SPEED 150
 
 #ifdef ENABLE_L298N_MOTOR_DRIVER
-#include "l298n_motor_driver.h"
-
-#define LEFT_MOTOR_INIT 12,13,9
-#define RIGHT_MOTOR_INIT 7,8,11
+  #include "l298n_motor_driver.h"
+  #define LEFT_MOTOR_INIT 12,13,9
+  #define RIGHT_MOTOR_INIT 7,8,11
 #endif
 
 #ifdef ENABLE_NEWPING_DISTANCE_SENSOR_DRIVER
-#include <NewPing.h>
-#include "newping_distance_sensor.h"
-#define DISTANCE_SENSOR_INIT 2,5,MAX_DISTANCE
+  #include <NewPing.h>
+  #include "newping_distance_sensor.h"
+  #define DISTANCE_SENSOR_INIT 2,5,MAX_DISTANCE
 #endif
 
 #ifdef ENABLE_WIFI_REMOTE_CONTROL_DRIVER
-#include "wifi_remote_control.h"
+  #include <Adafruit_CC3000.h>
+  #include <ccspi.h>
+  #include <SPI.h>
+  #include <PubSubClient.h>
+  
+  // These are the interrupt and control pins
+  #define ADAFRUIT_CC3000_IRQ   3  // MUST be an interrupt pin!
+  // These can be any two pins
+  #define ADAFRUIT_CC3000_VBAT  5
+  #define ADAFRUIT_CC3000_CS    10
+  
+  #define WLAN_SSID       "chan_mobile"        // cannot be longer than 32 characters!
+  #define WLAN_PASS       ""
+  // Security can be WLAN_SEC_UNSEC, WLAN_SEC_WEP, WLAN_SEC_WPA or WLAN_SEC_WPA2
+  #define WLAN_SECURITY   WLAN_SEC_WPA2
+  #define MQTT_SERVER  "192.168.0.100",1883
+  #include "wifi_remote_control.h"
 #endif
 
 #include "logging.h"
 #include "moving_average.h"
+
+#define REMOTE 0
 
 namespace Azdroid
 {
@@ -51,9 +68,10 @@ public:
      */
     Robot(): 
       leftMotor(LEFT_MOTOR_INIT), rightMotor(RIGHT_MOTOR_INIT), 
-      distanceSensor(DISTANCE_SENSOR_INIT), distanceAverage(TOO_CLOSE * 10)
+      distanceSensor(DISTANCE_SENSOR_INIT), distanceAverage(TOO_CLOSE * 10),
+      remoteControl()
       {
-        initialize();
+        //initialize();
       }
 
     /*
@@ -61,7 +79,15 @@ public:
      */
     void initialize()
     {
-      move();
+      Serial.println("Initializing Robot...");
+      if(isRemoteMode())
+      {
+         remoteControl.initialize();
+      }
+      else 
+      {
+        move();
+      }
     }
 
     /*
@@ -70,30 +96,37 @@ public:
      */
     void run()
     {
-      unsigned long currentTime = millis();
-      int distance = distanceAverage.add(distanceSensor.getDistance());
-
-      if (moving()) 
+      if(isRemoteMode())
       {
-        if (obstacleAhead(distance))
-        {
-          //stop();
-          reverse(currentTime);
-          turn(currentTime);
-        }
+      
       } 
-      else if(reversing())
-      {
-        if (doneReversing(currentTime))
+      else
+      {  
+        unsigned long currentTime = millis();
+        int distance = distanceAverage.add(distanceSensor.getDistance());
+  
+        if (moving()) 
         {
-          // stop();
-          turn(currentTime);
+          if (obstacleAhead(distance))
+          {
+            //stop();
+            reverse(currentTime);
+            turn(currentTime);
+          }
+        } 
+        else if(reversing())
+        {
+          if (doneReversing(currentTime))
+          {
+            // stop();
+            turn(currentTime);
+          }
+        } 
+        else if (turning())
+        {
+          if (doneTurning(currentTime, distance))
+            move();
         }
-      } 
-      else if (turning())
-      {
-        if (doneTurning(currentTime, distance))
-          move();
       }
     }
 
@@ -186,7 +219,7 @@ private:
     Motor rightMotor;
     DistanceSensor distanceSensor;
     MovingAverage<unsigned int, 3> distanceAverage;
-    // RemoteControl remoteControl;
+    RemoteControl remoteControl;
     enum state_t {stateStopped, stateMoving, stateTurning, stateRemote, stateReversing};
     state_t state;
     unsigned long endStateTime;
@@ -206,6 +239,11 @@ private:
       motor1.setSpeed(-SPEED);
       motor2.setSpeed(SPEED);
     }
+    
+    bool isRemoteMode()
+    {
+      return REMOTE;
+    }
   };
 };
 
@@ -213,7 +251,11 @@ Azdroid::Robot robot;
 
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(115200);
+  Serial.println("--------------------------");
+  Serial.println("|  A  Z  D  R  O  I  D   |");
+  Serial.println("--------------------------\n\n");
+  robot.initialize();
 }
 
 void loop()
