@@ -37,7 +37,7 @@
   #include <Adafruit_CC3000.h>
   #include <ccspi.h>
   #include <SPI.h>
-  #include <PubSubClient.h>
+  #include "MqttClient.h"
   
   // These are the interrupt and control pins
   #define ADAFRUIT_CC3000_IRQ   3  // MUST be an interrupt pin!
@@ -49,7 +49,7 @@
   #define WLAN_PASS       ""
   // Security can be WLAN_SEC_UNSEC, WLAN_SEC_WEP, WLAN_SEC_WPA or WLAN_SEC_WPA2
   #define WLAN_SECURITY   WLAN_SEC_WPA2
-  byte mqttServerHost[] = { 192, 168, 0, 100};
+  byte mqttServerHost[] = { 192, 168, 0, 101};
   int mqttServerPort = 1883;
   #include "wifi_remote_control.h"
 #endif
@@ -57,7 +57,7 @@
 #include "logging.h"
 #include "moving_average.h"
 
-#define REMOTE 0
+#define REMOTE 1
 
 namespace Azdroid
 {
@@ -98,7 +98,8 @@ public:
     {
       if(isRemoteMode())
       {
-      
+        RemoteControlDriver::command_t remoteCmd;
+        bool haveRemoteCmd = remoteControl.getRemoteCommand(remoteCmd);
       } 
       else
       {  

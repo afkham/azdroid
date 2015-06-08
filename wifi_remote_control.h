@@ -3,6 +3,29 @@
 namespace Azdroid
 {
 
+    
+    class RemoteControlCallback : public Callback
+    {
+    public:
+        // Callback function
+        virtual void callback(char* topic, byte* payload, unsigned int length) {
+          // In order to republish this payload, a copy must be made
+          // as the orignal payload buffer will be overwritten whilst
+          // constructing the PUBLISH packet.
+          
+          // Allocate the correct amount of memory for the payload copy
+          byte* p = (byte*)malloc(length);
+          // Copy the payload to the new buffer
+          memcpy(p,payload,length);
+          // client.publish("outTopic", p, length);
+          // client.publish("outTopic", "Wuhu... got a message");
+          // Free the memory
+          free(p);
+          
+          Serial.println("+++ Received message");
+        }
+    };
+    
     class RemoteControl : public RemoteControlDriver
     {
     public:
@@ -12,9 +35,10 @@ namespace Azdroid
           */
         RemoteControl() : RemoteControlDriver(), lastKey(command_t::keyNone),
                            cc3000(ADAFRUIT_CC3000_CS, ADAFRUIT_CC3000_IRQ, ADAFRUIT_CC3000_VBAT, SPI_CLOCK_DIVIDER),
-                           client(mqttServerHost, mqttServerPort, NULL, cc3000)
+                           callback(),
+                           client(mqttServerHost, mqttServerPort, &callback, cc3000)
         {
-            
+   
         }
         
         virtual void initialize()
@@ -57,6 +81,7 @@ namespace Azdroid
         {
             cmd.stop();
             cmd.key = command_t::keyNone;
+            client.loop();
             
             char ch = '8';
             switch (ch) {
@@ -100,25 +125,9 @@ namespace Azdroid
     private:
         command_t::key_t lastKey;
         Adafruit_CC3000 cc3000;
-       
-        PubSubClient client;
-        
-        // Callback function
-        void callback(char* topic, byte* payload, unsigned int length) {
-          // In order to republish this payload, a copy must be made
-          // as the orignal payload buffer will be overwritten whilst
-          // constructing the PUBLISH packet.
-          
-          // Allocate the correct amount of memory for the payload copy
-          byte* p = (byte*)malloc(length);
-          // Copy the payload to the new buffer
-          memcpy(p,payload,length);
-          // client.publish("outTopic", p, length);
-          client.publish("outTopic", "Wuhu... got a message");
-          // Free the memory
-          free(p);
-        }
-        
+        RemoteControlCallback callback;
+        MqttClient client;
+                
         bool displayConnectionDetails(void)
         {
           uint32_t ipAddress, netmask, gateway, dhcpserv, dnsserv;
