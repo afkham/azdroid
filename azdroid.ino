@@ -49,7 +49,8 @@
   #define WLAN_PASS       ""
   // Security can be WLAN_SEC_UNSEC, WLAN_SEC_WEP, WLAN_SEC_WPA or WLAN_SEC_WPA2
   #define WLAN_SECURITY   WLAN_SEC_WPA2
-  #define MQTT_SERVER  "192.168.0.100",1883
+  byte mqttServerHost[] = { 192, 168, 0, 100};
+  int mqttServerPort = 1883;
   #include "wifi_remote_control.h"
 #endif
 
@@ -71,11 +72,10 @@ public:
       distanceSensor(DISTANCE_SENSOR_INIT), distanceAverage(TOO_CLOSE * 10),
       remoteControl()
       {
-        //initialize();
       }
 
     /*
-         * @brief Initialize the robot state.
+     * @brief Initialize the robot state.
      */
     void initialize()
     {

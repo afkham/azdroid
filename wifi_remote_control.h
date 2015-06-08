@@ -6,12 +6,13 @@ namespace Azdroid
     class RemoteControl : public RemoteControlDriver
     {
     public:
+         
         /**
           * @brief Class constructor.
           */
         RemoteControl() : RemoteControlDriver(), lastKey(command_t::keyNone),
                            cc3000(ADAFRUIT_CC3000_CS, ADAFRUIT_CC3000_IRQ, ADAFRUIT_CC3000_VBAT, SPI_CLOCK_DIVIDER),
-                           client(MQTT_SERVER, NULL, cc3000)
+                           client(mqttServerHost, mqttServerPort, NULL, cc3000)
         {
             
         }
@@ -43,10 +44,12 @@ namespace Azdroid
               delay(1000);
             }
           
-            if (client.connect("azdroid-deadbeefeed")) 
+            Serial.println("Connecting to MQTT server...");
+            if (client.connect("azdroid")) 
             {
               client.publish("outTopic","hello world");
               client.subscribe("inTopic");
+              Serial.println("MQTT initialization successful");
             }  
         }
         
@@ -98,7 +101,6 @@ namespace Azdroid
         command_t::key_t lastKey;
         Adafruit_CC3000 cc3000;
        
-        //byte server[] = { 192, 168, 0, 100};
         PubSubClient client;
         
         // Callback function
@@ -133,7 +135,7 @@ namespace Azdroid
             Serial.print(F("\nGateway: ")); cc3000.printIPdotsRev(gateway);
             Serial.print(F("\nDHCPsrv: ")); cc3000.printIPdotsRev(dhcpserv);
             Serial.print(F("\nDNSserv: ")); cc3000.printIPdotsRev(dnsserv);
-            Serial.println();
+            Serial.println("\n");
             return true;
           }
         }
