@@ -99,10 +99,17 @@ namespace Azdroid
             client.loop();
             
             char ch = callback.getMessage();
-            if(ch == lastKey)
+            if(ch == lastCmd)
             {
               return false;
+            } 
+            else 
+            {
+               lastCmd = ch; 
+               Serial.print(F("New key:")); Serial.println(lastCmd);
             }
+            
+            Serial.println(lastCmd);
             switch (ch) {
                 case '8': // up
                     cmd.goForward();
@@ -144,6 +151,7 @@ namespace Azdroid
     
     private:
         command_t::key_t lastKey;
+        char lastCmd;
         Adafruit_CC3000 cc3000;
         RemoteControlCallback callback;
         MqttClient client;

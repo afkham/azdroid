@@ -48,7 +48,7 @@
   #define WLAN_SSID       "chan_mobile"        // cannot be longer than 32 characters!
   #define WLAN_PASS       ""
   // Security can be WLAN_SEC_UNSEC, WLAN_SEC_WEP, WLAN_SEC_WPA or WLAN_SEC_WPA2
-  #define WLAN_SECURITY   WLAN_SEC_WPA2
+  #define WLAN_SECURITY   WLAN_SEC_UNSEC
   byte mqttServerHost[] = { 192, 168, 0, 101};
   int mqttServerPort = 1883;
   #include "wifi_remote_control.h"
