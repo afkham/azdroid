@@ -3,8 +3,6 @@
 namespace Azdroid
 {
 
-    
-    
     class RemoteControlCallback : public Callback
     {
     public:
@@ -25,12 +23,18 @@ namespace Azdroid
           
           // free(recdMsg);
           
-          Serial.println("+++ Received message");
+          Serial.print("+++ Received message: ");
+          Serial.println(recdMsg);
         }
         
         char getMessage()
         {
            return recdMsg; 
+        }
+        
+        void clear()
+        {
+           recdMsg = NULL; 
         }
         
       private:
@@ -95,6 +99,10 @@ namespace Azdroid
             client.loop();
             
             char ch = callback.getMessage();
+            if(ch == lastKey)
+            {
+              return false;
+            }
             switch (ch) {
                 case '8': // up
                     cmd.goForward();
@@ -125,6 +133,7 @@ namespace Azdroid
                 default:
                     break;
             }
+            // callback.clear();
             if (cmd.key != command_t::keyNone && cmd.key == lastKey) {
                 // repeated key, ignore it
                 return false; 

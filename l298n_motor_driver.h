@@ -29,12 +29,10 @@ namespace Azdroid
                 digitalWrite(this->pin2, LOW); 
                 analogWrite(this->pinEnable, speed);
             } else if (speed > 0){
-                Serial.println("Moving forward");
                 digitalWrite(this->pin1, HIGH); 
                 digitalWrite(this->pin2, LOW); 
                 analogWrite(this->pinEnable, speed);
             } else {
-                Serial.println("++++++ Reversing");
                 digitalWrite(this->pin1, LOW); 
                 digitalWrite(this->pin2, HIGH); 
                 analogWrite(this->pinEnable, -speed);
