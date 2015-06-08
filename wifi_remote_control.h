@@ -111,6 +111,9 @@ namespace Azdroid
             
             Serial.println(lastCmd);
             switch (ch) {
+                case '0': // stop
+                    cmd.stop();
+                    break;
                 case '8': // up
                     cmd.goForward();
                     break;

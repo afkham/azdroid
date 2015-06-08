@@ -15,15 +15,15 @@
 // constants
 #define TOO_CLOSE 10                    /**< distance to obstacle in centimeters */
 #define MAX_DISTANCE (TOO_CLOSE * 20)   /**< maximum distance to track with sensor */
-#define RANDOM_ANALOG_PIN 5             /**< unused analog pin to use as random seed */
-#define BT_RX_PIN 10                    /**< RX pin for Bluetooth communcation */
-#define BT_TX_PIN 3                    /**< TX pin for Bluetooth communcation */
+//#define RANDOM_ANALOG_PIN 5             /**< unused analog pin to use as random seed */
+//#define BT_RX_PIN 10                    /**< RX pin for Bluetooth communcation */
+//#define BT_TX_PIN 3                    /**< TX pin for Bluetooth communcation */
 
 #define SPEED 150
 
 #ifdef ENABLE_L298N_MOTOR_DRIVER
   #include "l298n_motor_driver.h"
-  #define LEFT_MOTOR_INIT 12,13,9
+  #define LEFT_MOTOR_INIT 12,6,9
   #define RIGHT_MOTOR_INIT 7,8,11
 #endif
 
@@ -109,8 +109,8 @@ public:
                 break;
             case RemoteControlDriver::command_t::keyNone:
                 // this is a directional command
-                leftMotor.setSpeed(remoteCmd.left);
-                rightMotor.setSpeed(remoteCmd.right);
+                leftMotor.setSpeed(remoteCmd.left); 
+                rightMotor.setSpeed(remoteCmd.right); 
                 break;
             default:
                 break;
