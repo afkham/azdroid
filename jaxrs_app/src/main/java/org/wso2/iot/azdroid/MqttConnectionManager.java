@@ -99,7 +99,6 @@ public class MqttConnectionManager {
 			connect.waitForCompletion();
 		} catch (MqttException e) {
 			e.printStackTrace();
-			System.exit(-1);
 		}
 
 		System.out.println("Connected to " + BROKER_URL);
