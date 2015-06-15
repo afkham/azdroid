@@ -1,16 +1,23 @@
 package com.wso2.azdroidcontroller;
 
-import android.support.v4.app.FragmentActivity;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
 
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 
 public class MainActivity extends FragmentActivity {
@@ -24,9 +31,7 @@ public class MainActivity extends FragmentActivity {
 
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Moving forward...", Toast.LENGTH_SHORT).show();
-                HttpClient httpclient = new DefaultHttpClient();
-                HttpGet request = new HttpGet("http://foo.com");
+                new CallAPITask("forward").execute("http://wso2.com");
             }
         });
         findViewById(R.id.buttonReverse).setOnClickListener(new View.OnClickListener() {
@@ -84,5 +89,27 @@ public class MainActivity extends FragmentActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private class CallAPITask extends AsyncTask<String, Integer, Boolean> {
+
+        private String direction;
+
+        private CallAPITask(String direction) {
+            this.direction = direction;
+        }
+
+        protected Boolean doInBackground(String... urls) {
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpGet request = null;
+            try {
+                request = new HttpGet(urls[0]);
+                ResponseHandler<String> handler = new BasicResponseHandler();
+                String result = httpclient.execute(request, handler);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return Boolean.TRUE;
+        }
     }
 }
