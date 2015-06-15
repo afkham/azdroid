@@ -19,7 +19,7 @@
         android:layout_weight=".12">
 
         <Button
-            android:id="@+id/buttonTurnLeft"
+            android:id="@+id/buttonLeft"
             android:layout_width="0dp"
             android:layout_height="100dp"
             android:layout_weight=".25"
@@ -68,7 +68,7 @@
         android:layout_weight=".12">
 
         <Button
-            android:id="@+id/buttonTurnRight"
+            android:id="@+id/buttonRight"
             android:layout_width="0dp"
             android:layout_height="100dp"
             android:layout_weight=".25"
