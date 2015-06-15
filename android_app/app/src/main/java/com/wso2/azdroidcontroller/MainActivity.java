@@ -6,9 +6,7 @@ import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
@@ -16,11 +14,12 @@ import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 
 
 public class MainActivity extends FragmentActivity {
+
+//    public static final String AZDROID_API = "http://192.168.0.100:9764/Azdroid/services/azdroid_commander/azdroid/move/";
+    public static final String AZDROID_API = "http://192.168.0.100:8280/azdroid/1.0/move/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,39 +30,35 @@ public class MainActivity extends FragmentActivity {
 
             @Override
             public void onClick(View v) {
-                new CallAPITask("forward").execute("http://wso2.com");
+                new CallAPITask("forward").execute(AZDROID_API);
             }
         });
         findViewById(R.id.buttonReverse).setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Moving backward...", Toast.LENGTH_SHORT).show();
-
+                new CallAPITask("reverse").execute(AZDROID_API);
             }
         });
         findViewById(R.id.buttonLeft).setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Turning left...", Toast.LENGTH_SHORT).show();
-
+                new CallAPITask("left").execute(AZDROID_API);
             }
         });
         findViewById(R.id.buttonRight).setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Turning right...", Toast.LENGTH_SHORT).show();
-
+                new CallAPITask("right").execute(AZDROID_API);
             }
         });
         findViewById(R.id.buttonStop).setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Stopping...", Toast.LENGTH_SHORT).show();
-
+                new CallAPITask("stop").execute(AZDROID_API);
             }
         });
     }
@@ -101,9 +96,10 @@ public class MainActivity extends FragmentActivity {
 
         protected Boolean doInBackground(String... urls) {
             HttpClient httpclient = new DefaultHttpClient();
-            HttpGet request = null;
+            HttpGet request;
             try {
-                request = new HttpGet(urls[0]);
+                request = new HttpGet(urls[0] + direction);
+                request.addHeader("Authorization", "Bearer a27cd3fbc81fdb2fa2161837a5165dae");
                 ResponseHandler<String> handler = new BasicResponseHandler();
                 String result = httpclient.execute(request, handler);
             } catch (IOException e) {
