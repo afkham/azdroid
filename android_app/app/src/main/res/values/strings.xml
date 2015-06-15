@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">AzdroidController</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="buttonTurnLeft"><![CDATA[< Left]]></string>
+    <string name="buttonForward">Front</string>
+    <string name="buttonStop">STOP</string>
+    <string name="buttonReverse">Back</string>
+    <string name="buttonTurnRight"><![CDATA[Right >]]></string>
+</resources>

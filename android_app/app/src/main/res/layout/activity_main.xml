@@ -1,0 +1,80 @@
+<LinearLayout
+    android:id="@+id/mainAzdroid"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:orientation="horizontal"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:theme="@style/AppTheme">
+
+
+    <LinearLayout
+        android:id="@+id/col1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight=".12">
+
+        <Button
+            android:id="@+id/buttonTurnLeft"
+            android:layout_width="0dp"
+            android:layout_height="100dp"
+            android:layout_weight=".25"
+            android:layout_gravity="center"
+            android:text="@string/buttonTurnLeft"
+            android:textSize="30sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/col2"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight=".12"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/buttonForward"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight=".25"
+            android:text="@string/buttonForward"
+            android:textSize="30sp"/>
+
+        <Button
+            android:id="@+id/buttonStop"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight=".25"
+            android:text="@string/buttonStop"
+            android:textSize="30sp"/>
+
+        <Button
+            android:id="@+id/buttonReverse"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight=".25"
+            android:text="@string/buttonReverse"
+            android:textSize="30sp"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/col3"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight=".12">
+
+        <Button
+            android:id="@+id/buttonTurnRight"
+            android:layout_width="0dp"
+            android:layout_height="100dp"
+            android:layout_weight=".25"
+            android:layout_gravity="center"
+            android:text="@string/buttonTurnRight"
+            android:textSize="30sp"/>
+    </LinearLayout>
+
+</LinearLayout>
