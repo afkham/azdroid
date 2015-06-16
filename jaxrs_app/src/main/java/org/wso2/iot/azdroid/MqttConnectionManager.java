@@ -8,16 +8,19 @@ import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.MqttPersistenceException;
 
 public class MqttConnectionManager {
 
 	public static MqttConnectionManager instance = new MqttConnectionManager();
 
-	MqttAsyncClient mqttClient;
-	MqttConnectOptions connOpt;
+	private MqttAsyncClient mqttClient;
+	private MqttConnectOptions connOpt;
 
-	static final String BROKER_URL = "tcp://localhost:1883";
-	static final String COMMAND_TOPIC = "inTopic";
+	private static final String BROKER_URL = "tcp://localhost:1883";
+	private static final String COMMAND_TOPIC = "inTopic";
+
+	private boolean noConnection = true;
 
 	private MqttConnectionManager() {
 		init();
@@ -28,7 +31,11 @@ public class MqttConnectionManager {
 	}
 
 	public void publish(String command) {
-		
+
+		if (noConnection) {
+			init();
+		}
+
 		int pubQoS = 2;
 		MqttMessage message = new MqttMessage(command.getBytes());
 		message.setQos(pubQoS);
@@ -37,9 +44,9 @@ public class MqttConnectionManager {
 		// Publish the message
 		System.out.println("Publishing to topic \"" + COMMAND_TOPIC + "\" qos " + pubQoS);
 		// MqttDeliveryToken token = null;
-		try {
-			// publish message to broker
 
+		// publish message to broker
+		try {
 			mqttClient.publish(COMMAND_TOPIC, message, "test", new IMqttActionListener() {
 
 				public void onSuccess(IMqttToken iMqttToken) {
@@ -50,7 +57,9 @@ public class MqttConnectionManager {
 					System.err.println("Publishing failed");
 				}
 			}).waitForCompletion();
-		} catch (Exception e) {
+		} catch (MqttPersistenceException e) {
+			e.printStackTrace();
+		} catch (MqttException e) {
 			e.printStackTrace();
 		}
 	}
@@ -72,6 +81,7 @@ public class MqttConnectionManager {
 
 				public void connectionLost(Throwable throwable) {
 					System.out.println("Connection lost: " + throwable.getMessage());
+					noConnection = true;
 				}
 
 				public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
@@ -97,10 +107,10 @@ public class MqttConnectionManager {
 				}
 			});
 			connect.waitForCompletion();
+			noConnection = false;
+			System.out.println("Connected to " + BROKER_URL);
 		} catch (MqttException e) {
 			e.printStackTrace();
 		}
-
-		System.out.println("Connected to " + BROKER_URL);
 	}
 }
