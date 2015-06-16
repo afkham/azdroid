@@ -2,28 +2,26 @@ package com.wso2.azdroidcontroller;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.util.Base64;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 
 public class MainActivity extends FragmentActivity {
@@ -32,8 +30,12 @@ public class MainActivity extends FragmentActivity {
 
     private static final String CONSUMER_KEY = "29I6fZ2uKrWZ2d_PcMZDQ3qPgU0a";
     private static final String CONSUMER_SECRET = "GOUOqsUIb0wMn1E9h5BPrvD8PzMa";
+    //    private static final String TOKEN_ENDPOINT = "http://192.168.0.100:8080/token";
     private static final String TOKEN_ENDPOINT = "http://192.168.0.100:8280/token";
     public static final String AZDROID_API = "http://192.168.0.100:8280/azdroid/1.0/move/";
+
+    private Token accessToken;
+    private HttpClient httpClient = new DefaultHttpClient();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,43 +111,63 @@ public class MainActivity extends FragmentActivity {
         }
 
         protected Boolean doInBackground(String... urls) {
-            HttpClient httpclient = new DefaultHttpClient();
+            if (accessToken == null) {
+                accessToken = getToken();
+            }
             HttpGet request;
             try {
                 request = new HttpGet(urls[0] + direction);
-                request.addHeader("Authorization", "Bearer a27cd3fbc81fdb2fa2161837a5165dae");
-                ResponseHandler<String> handler = new BasicResponseHandler();
-                String response = httpclient.execute(request, handler);
+                request.addHeader("Authorization", "Bearer " + accessToken.getAccessToken());
+                HttpResponse response = httpClient.execute(request);
+                int statusCode = response.getStatusLine().getStatusCode();
+                if (statusCode == HttpStatus.SC_FORBIDDEN) {
+                    // Token may have expired. Try to get a new token
+                    accessToken = getToken();
+                    doInBackground(urls);
+                }
+
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e("Could not call API", "Could not call API", e);
             }
             return Boolean.TRUE;
         }
 
         private Token getToken() {
-            HttpClient httpClient = new DefaultHttpClient();
             try {
+                // Get a handler that can be used to post to the main thread
+                Handler mainHandler = new Handler(MainActivity.this.getMainLooper());
+                Runnable accessTokenObtainer = new Runnable(){
+
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, "Obtaining access token...", Toast.LENGTH_SHORT).show();
+                    }
+                };
+                mainHandler.post(accessTokenObtainer);
+
                 String applicationToken = CONSUMER_KEY + ":" + CONSUMER_SECRET;
                 applicationToken = "Basic " + Base64.encodeToString(applicationToken.getBytes("UTF-8"), Base64.DEFAULT);
 
-                HttpPost request = new HttpPost(TOKEN_ENDPOINT);
+                HttpPost request = new HttpPost(TOKEN_ENDPOINT + "?grant_type=client_credentials");
                 request.addHeader("Authorization", applicationToken);
                 request.addHeader("Content-Type", "application/x-www-form-urlencoded");
-                List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>(1);
-                nameValuePairs.add(new BasicNameValuePair("grant_type", "client_credentials"));
-                request.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
-                ResponseHandler<String> handler = new BasicResponseHandler();
-                String response = httpClient.execute(request, handler);
-                return getAccessToken(response);
+                HttpResponse response = httpClient.execute(request);
+                int status = response.getStatusLine().getStatusCode();
+                if (status == 200) {
+                    String result = EntityUtils.toString(response.getEntity());
+//                    Toast.makeText(MainActivity.this, "Access token successfully obtained", Toast.LENGTH_SHORT).show();
+                    return toToken(result);
+                }
             } catch (IOException e) {
                 e.printStackTrace();
-                return null;
             }
+
+            return null;
         }
 
         /**
-         * Populates Token object using folloing JSON String
+         * Populates Token object using following JSON String
          * {
          * "token_type": "bearer",
          * "expires_in": 3600000,
@@ -156,7 +178,7 @@ public class MainActivity extends FragmentActivity {
          * @param accessTokenJson
          * @return
          */
-        private Token getAccessToken(String accessTokenJson) {
+        private Token toToken(String accessTokenJson) {
             Token token = new Token();
             try {
                 JSONObject jsonObject = new JSONObject(accessTokenJson);
