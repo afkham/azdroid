@@ -31,19 +31,19 @@ import java.util.Properties;
 
 public class MainActivity extends FragmentActivity {
 
-//    public static final String AZDROID_API = "http://192.168.0.100:9764/Azdroid/services/azdroid_commander/azdroid/move/";
+//    public static final String DEFAULT_AZDROID_API = "http://192.168.0.100:9764/Azdroid/services/azdroid_commander/azdroid/move/";
 
     private static final String CONSUMER_KEY = "29I6fZ2uKrWZ2d_PcMZDQ3qPgU0a";
     private static final String CONSUMER_SECRET = "GOUOqsUIb0wMn1E9h5BPrvD8PzMa";
-    //    private static final String TOKEN_ENDPOINT = "http://192.168.0.100:8080/token";
-    private static final String TOKEN_ENDPOINT = "http://192.168.0.100:8280/token";
-    public static final String AZDROID_API = "http://192.168.0.100:8280/azdroid/1.0/move/";
+    //    private static final String DEFAULT_TOKEN_ENDPOINT = "http://192.168.0.100:8080/token";
+    private static final String DEFAULT_TOKEN_ENDPOINT = "http://192.168.0.100:8280/token";
+    public static final String DEFAULT_AZDROID_API = "http://192.168.0.100:8280/azdroid/1.0/move/";
     public static final String AZDROID_TXT = "azdroid.txt";
     public static final String AZDROID_API_KEY = "azdroid.api";
     public static final String TOKEN_ENDPOINT_KEY = "token.endpoint";
 
-    private String tokenEndpoint;
-    private String azdroidAPI;
+    private String tokenEndpoint = DEFAULT_TOKEN_ENDPOINT;
+    private String azdroidAPI = DEFAULT_AZDROID_API;
 
     private Token accessToken;
     private HttpClient httpClient = new DefaultHttpClient();
@@ -62,35 +62,35 @@ public class MainActivity extends FragmentActivity {
 
             @Override
             public void onClick(View v) {
-                new CallAPITask("forward").execute(AZDROID_API);
+                new CallAPITask("forward").execute(azdroidAPI);
             }
         });
         findViewById(R.id.buttonReverse).setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                new CallAPITask("reverse").execute(AZDROID_API);
+                new CallAPITask("reverse").execute(azdroidAPI);
             }
         });
         findViewById(R.id.buttonLeft).setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                new CallAPITask("left").execute(AZDROID_API);
+                new CallAPITask("left").execute(azdroidAPI);
             }
         });
         findViewById(R.id.buttonRight).setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                new CallAPITask("right").execute(AZDROID_API);
+                new CallAPITask("right").execute(azdroidAPI);
             }
         });
         findViewById(R.id.buttonStop).setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                new CallAPITask("stop").execute(AZDROID_API);
+                new CallAPITask("stop").execute(azdroidAPI);
             }
         });
     }
@@ -132,11 +132,11 @@ public class MainActivity extends FragmentActivity {
                 this.tokenEndpoint = properties.getProperty(TOKEN_ENDPOINT_KEY);
             }
         } else {
-            this.azdroidAPI = AZDROID_API;
-            this.tokenEndpoint = TOKEN_ENDPOINT;
+            this.azdroidAPI = DEFAULT_AZDROID_API;
+            this.tokenEndpoint = DEFAULT_TOKEN_ENDPOINT;
 
-            String dir = sdcard + File.separator + "Android" + File.separator + "data" + File.separator +  getClass().getPackage().getName();
-            if(new File(dir).mkdirs()) {
+            String dir = sdcard + File.separator + "Android" + File.separator + "data" + File.separator + getClass().getPackage().getName();
+            if (new File(dir).mkdirs()) {
                 File newFile = new File(dir, AZDROID_TXT);
 
                 properties.put(AZDROID_API_KEY, this.azdroidAPI);
@@ -174,13 +174,13 @@ public class MainActivity extends FragmentActivity {
                         return Boolean.TRUE;
                     }
                 }
-            } catch (IOException e) {
+            } catch (IOException | JSONException e) {
                 Log.e("Could not call API", "Could not call API", e);
             }
             return Boolean.FALSE;
         }
 
-        private Token getToken() throws IOException {
+        private Token getToken() throws IOException, JSONException {
             // Get a handler that can be used to post to the main thread
             Handler mainHandler = new Handler(MainActivity.this.getMainLooper());
             Runnable accessTokenObtainer = new Runnable() {
@@ -195,7 +195,7 @@ public class MainActivity extends FragmentActivity {
             String applicationToken = CONSUMER_KEY + ":" + CONSUMER_SECRET;
             applicationToken = "Basic " + Base64.encodeToString(applicationToken.getBytes("UTF-8"), Base64.DEFAULT);
 
-            HttpPost request = new HttpPost(TOKEN_ENDPOINT + "?grant_type=client_credentials");
+            HttpPost request = new HttpPost(tokenEndpoint + "?grant_type=client_credentials");
             request.addHeader("Authorization", applicationToken);
             request.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
@@ -220,18 +220,14 @@ public class MainActivity extends FragmentActivity {
          * @param accessTokenJson
          * @return
          */
-        private Token toToken(String accessTokenJson) {
+        private Token toToken(String accessTokenJson) throws JSONException {
             Token token = new Token();
-            try {
-                JSONObject jsonObject = new JSONObject(accessTokenJson);
-                token.setAccessToken((String) jsonObject.get("access_token"));
-                long expiresIn = ((Long) jsonObject.get("expires_in")).intValue();
-                token.setExpiresIn(expiresIn);
-                token.setRefreshToken((String) jsonObject.get("refresh_token"));
-                token.setTokenType((String) jsonObject.get("token_type"));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            JSONObject jsonObject = new JSONObject(accessTokenJson);
+            token.setAccessToken((String) jsonObject.get("access_token"));
+            long expiresIn = ((Long) jsonObject.get("expires_in")).intValue();
+            token.setExpiresIn(expiresIn);
+            token.setRefreshToken((String) jsonObject.get("refresh_token"));
+            token.setTokenType((String) jsonObject.get("token_type"));
             return token;
         }
     }
