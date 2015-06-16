@@ -2,6 +2,7 @@ package com.wso2.azdroidcontroller;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 import android.util.Base64;
@@ -21,7 +22,11 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Properties;
 
 
 public class MainActivity extends FragmentActivity {
@@ -33,6 +38,12 @@ public class MainActivity extends FragmentActivity {
     //    private static final String TOKEN_ENDPOINT = "http://192.168.0.100:8080/token";
     private static final String TOKEN_ENDPOINT = "http://192.168.0.100:8280/token";
     public static final String AZDROID_API = "http://192.168.0.100:8280/azdroid/1.0/move/";
+    public static final String AZDROID_TXT = "azdroid.txt";
+    public static final String AZDROID_API_KEY = "azdroid.api";
+    public static final String TOKEN_ENDPOINT_KEY = "token.endpoint";
+
+    private String tokenEndpoint;
+    private String azdroidAPI;
 
     private Token accessToken;
     private HttpClient httpClient = new DefaultHttpClient();
@@ -41,6 +52,11 @@ public class MainActivity extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        try {
+            loadProperties();
+        } catch (IOException e) {
+            Log.e("cannot.load.props", "Cannot load azdroid.properties file", e);
+        }
 
         findViewById(R.id.buttonForward).setOnClickListener(new View.OnClickListener() {
 
@@ -102,6 +118,36 @@ public class MainActivity extends FragmentActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private void loadProperties() throws IOException {
+        File sdcard = Environment.getExternalStorageDirectory();
+
+        //Get the text file
+        File file = new File(sdcard, "Android" + File.separator + "data" + File.separator + getClass().getPackage().getName() + File.separator + AZDROID_TXT);
+
+        Properties properties = new Properties();
+        if (file.exists()) {
+            try (FileInputStream inputStream = new FileInputStream(file)) {
+                properties.load(inputStream);
+                this.azdroidAPI = properties.getProperty(AZDROID_API_KEY);
+                this.tokenEndpoint = properties.getProperty(TOKEN_ENDPOINT_KEY);
+            }
+        } else {
+            this.azdroidAPI = AZDROID_API;
+            this.tokenEndpoint = TOKEN_ENDPOINT;
+
+            String dir = sdcard + File.separator + "Android" + File.separator + "data" + File.separator +  getClass().getPackage().getName();
+            if(new File(dir).mkdirs()) {
+                File newFile = new File(dir, AZDROID_TXT);
+
+                properties.put(AZDROID_API_KEY, this.azdroidAPI);
+                properties.put(TOKEN_ENDPOINT_KEY, this.tokenEndpoint);
+                try (FileOutputStream out = new FileOutputStream(newFile)) {
+                    properties.store(out, "Azdroid Controller Configuration");
+                }
+            }
+        }
+    }
+
     private class CallAPITask extends AsyncTask<String, Integer, Boolean> {
 
         private String direction;
@@ -111,58 +157,54 @@ public class MainActivity extends FragmentActivity {
         }
 
         protected Boolean doInBackground(String... urls) {
-            if (accessToken == null) {
-                accessToken = getToken();
-            }
-            HttpGet request;
             try {
-                request = new HttpGet(urls[0] + direction);
-                request.addHeader("Authorization", "Bearer " + accessToken.getAccessToken());
-                HttpResponse response = httpClient.execute(request);
-                int statusCode = response.getStatusLine().getStatusCode();
-                if (statusCode == HttpStatus.SC_FORBIDDEN) {
-                    // Token may have expired. Try to get a new token
+                if (accessToken == null) {
                     accessToken = getToken();
-                    doInBackground(urls);
                 }
-
+                if (accessToken != null) {
+                    HttpGet request = new HttpGet(urls[0] + direction);
+                    request.addHeader("Authorization", "Bearer " + accessToken.getAccessToken());
+                    HttpResponse response = httpClient.execute(request);
+                    int statusCode = response.getStatusLine().getStatusCode();
+                    if (statusCode == HttpStatus.SC_FORBIDDEN) {
+                        // Token may have expired. Try to get a new token
+                        accessToken = getToken();
+                        doInBackground(urls);
+                    } else if (statusCode == HttpStatus.SC_OK) {
+                        return Boolean.TRUE;
+                    }
+                }
             } catch (IOException e) {
                 Log.e("Could not call API", "Could not call API", e);
             }
-            return Boolean.TRUE;
+            return Boolean.FALSE;
         }
 
-        private Token getToken() {
-            try {
-                // Get a handler that can be used to post to the main thread
-                Handler mainHandler = new Handler(MainActivity.this.getMainLooper());
-                Runnable accessTokenObtainer = new Runnable(){
+        private Token getToken() throws IOException {
+            // Get a handler that can be used to post to the main thread
+            Handler mainHandler = new Handler(MainActivity.this.getMainLooper());
+            Runnable accessTokenObtainer = new Runnable() {
 
-                    @Override
-                    public void run() {
-                        Toast.makeText(MainActivity.this, "Obtaining access token...", Toast.LENGTH_SHORT).show();
-                    }
-                };
-                mainHandler.post(accessTokenObtainer);
-
-                String applicationToken = CONSUMER_KEY + ":" + CONSUMER_SECRET;
-                applicationToken = "Basic " + Base64.encodeToString(applicationToken.getBytes("UTF-8"), Base64.DEFAULT);
-
-                HttpPost request = new HttpPost(TOKEN_ENDPOINT + "?grant_type=client_credentials");
-                request.addHeader("Authorization", applicationToken);
-                request.addHeader("Content-Type", "application/x-www-form-urlencoded");
-
-                HttpResponse response = httpClient.execute(request);
-                int status = response.getStatusLine().getStatusCode();
-                if (status == 200) {
-                    String result = EntityUtils.toString(response.getEntity());
-//                    Toast.makeText(MainActivity.this, "Access token successfully obtained", Toast.LENGTH_SHORT).show();
-                    return toToken(result);
+                @Override
+                public void run() {
+                    Toast.makeText(MainActivity.this, "Obtaining access token...", Toast.LENGTH_SHORT).show();
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            };
+            mainHandler.post(accessTokenObtainer);
 
+            String applicationToken = CONSUMER_KEY + ":" + CONSUMER_SECRET;
+            applicationToken = "Basic " + Base64.encodeToString(applicationToken.getBytes("UTF-8"), Base64.DEFAULT);
+
+            HttpPost request = new HttpPost(TOKEN_ENDPOINT + "?grant_type=client_credentials");
+            request.addHeader("Authorization", applicationToken);
+            request.addHeader("Content-Type", "application/x-www-form-urlencoded");
+
+            HttpResponse response = httpClient.execute(request);
+            int status = response.getStatusLine().getStatusCode();
+            if (status == HttpStatus.SC_OK) {
+                String result = EntityUtils.toString(response.getEntity());
+                return toToken(result);
+            }
             return null;
         }
 
