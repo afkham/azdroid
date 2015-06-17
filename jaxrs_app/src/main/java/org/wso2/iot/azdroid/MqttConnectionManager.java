@@ -18,7 +18,7 @@ public class MqttConnectionManager {
 	private MqttConnectOptions connOpt;
 
 	private static final String BROKER_URL = "tcp://localhost:1883";
-	private static final String COMMAND_TOPIC = "inTopic";
+	private static final String COMMAND_TOPIC = "azdroid/in";
 
 	private boolean noConnection = true;
 
