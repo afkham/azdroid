@@ -12,6 +12,8 @@ namespace Azdroid
         RemoteControlDriver() : speed(150), leftSpeed(0), rightSpeed(0)
         {
         }
+
+        virtual ~RemoteControlDriver(){}
          
         void setSpeed(unsigned int speed)
         {

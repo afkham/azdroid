@@ -110,8 +110,7 @@ boolean Azdroid::MqttClient::connect(char *id, char *user, char *pass,
 
 		if (connected()) {
 			nextMsgId = 1;
-			uint8_t d[9] = { 0x00, 0x06, 'M', 'Q', 'I', 's', 'd', 'p',
-					MQTTPROTOCOLVERSION };
+			uint8_t d[9] = { 0x00, 0x06, 'M', 'Q', 'I', 's', 'd', 'p', MQTTPROTOCOLVERSION };
 			// Leave room in the buffer for header and variable length field
 			uint16_t length = 5;
 			unsigned int j;

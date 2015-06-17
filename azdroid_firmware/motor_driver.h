@@ -4,6 +4,9 @@ namespace Azdroid
     class MotorDriver
     {
     public:
+
+    	virtual ~MotorDriver(){}
+
         /**
          * @brief Change the speed of the motor.
          * @param speed The new speed of the motor.

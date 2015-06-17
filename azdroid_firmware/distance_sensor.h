@@ -4,6 +4,9 @@ namespace Azdroid
     class DistanceSensorDriver
     {
     public:
+
+    	virtual ~DistanceSensorDriver(){}
+
         /**
           * @brief Class constructor.
           * @param distance The maximum distance in centimeters that needs to be tracked.

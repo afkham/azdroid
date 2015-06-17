@@ -38,6 +38,7 @@ namespace Azdroid {
   class Callback {
   
     public:
+	  virtual ~Callback() {}
       virtual void callback(char*,uint8_t*,unsigned int);
   };
   
