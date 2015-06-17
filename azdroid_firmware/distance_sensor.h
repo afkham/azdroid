@@ -17,6 +17,11 @@ namespace Azdroid
          */
         virtual unsigned int getDistance() = 0;
         
+        void setDistance(unsigned int maxDistance)
+        {
+          this->maxDistance = maxDistance;
+        }
+        
     protected:
         unsigned int maxDistance;
     };

@@ -3,6 +3,9 @@ namespace Azdroid
 {
     class RemoteControlDriver
     {
+    private:
+       static const int speed = 150;
+      
     public:
         /**
           * @brief abstract representation of a remote command.
@@ -16,21 +19,21 @@ namespace Azdroid
             command_t() : left(0), right(0), key(keyNone) {}
             void goForward()
             {
-                left = right = 255;
+                left = right = speed;
             }
             void goBack()
             {
-                left = right = -255;
+                left = right = -speed;
             }
             void turnLeft()
             {
-                left = -255;
-                right = 255;
+                left = -speed;
+                right = speed;
             }
             void turnRight()
             {
-                left = 255;
-                right = -255;
+                left = speed;
+                right = -speed;
             }
             void stop()
             {
@@ -45,14 +48,14 @@ namespace Azdroid
             {
                 left = fb - lr;
                 right = fb + lr;
-                if (left < -255)
-                    left = -255;
-                else if (left > 255)
-                    left = 255;
-                if (right < -255)
-                    right = -255;
-                else if (right > 255)
-                    right = 255;
+                if (left < -speed)
+                    left = -speed;
+                else if (left > speed)
+                    left = speed;
+                if (right < -speed)
+                    right = -speed;
+                else if (right > speed)
+                    right = speed;
             }
             void joystick(int x, int y)
             {

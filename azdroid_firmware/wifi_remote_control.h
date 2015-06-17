@@ -58,6 +58,7 @@ namespace Azdroid
         
         virtual void initialize()
         {
+            wdt_reset();
             Serial.println("Initializing RemoteControl...");
             cc3000.begin();
           
@@ -82,21 +83,27 @@ namespace Azdroid
             {
               delay(1000);
             }
-          
+            wdt_reset();
             Serial.println("Connecting to MQTT server...");
-            if (client.connect("azdroid")) 
+            if (client.connect("azdroid-007")) 
             {
-              client.publish("outTopic","hello world");
-              client.subscribe("inTopic");
+              client.publish("azdroid/out","Hello from azdroid-007");
+              client.subscribe("azdroid/in");
               Serial.println("MQTT initialization successful");
             }  
+            wdt_reset();
         }
         
         virtual bool getRemoteCommand(command_t& cmd)
         {
             cmd.stop();
             cmd.key = command_t::keyNone;
-            client.loop();
+            // client.publish("azdroid/out","Hearbeat from azdroid-007");
+            bool connected = client.loop();
+            if(!connected) 
+            {
+               initialize(); 
+            }
             
             char ch = callback.getMessage();
             if(ch == lastCmd)

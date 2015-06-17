@@ -1,5 +1,7 @@
 #define LOGGING
 
+#include <avr/wdt.h>
+
 // Device drivers
 // Enable one driver in each category
 
@@ -12,15 +14,6 @@
 // Remote control:
 #define ENABLE_WIFI_REMOTE_CONTROL_DRIVER
 
-// constants
-#define TOO_CLOSE 10                    /**< distance to obstacle in centimeters */
-#define MAX_DISTANCE (TOO_CLOSE * 20)   /**< maximum distance to track with sensor */
-//#define RANDOM_ANALOG_PIN 5             /**< unused analog pin to use as random seed */
-//#define BT_RX_PIN 10                    /**< RX pin for Bluetooth communcation */
-//#define BT_TX_PIN 3                    /**< TX pin for Bluetooth communcation */
-
-#define SPEED 150
-
 #ifdef ENABLE_L298N_MOTOR_DRIVER
   #include "l298n_motor_driver.h"
   #define LEFT_MOTOR_INIT 12,6,9
@@ -30,7 +23,7 @@
 #ifdef ENABLE_NEWPING_DISTANCE_SENSOR_DRIVER
   #include <NewPing.h>
   #include "newping_distance_sensor.h"
-  #define DISTANCE_SENSOR_INIT 2,5,MAX_DISTANCE
+  #define DISTANCE_SENSOR_INIT 2,5
 #endif
 
 #ifdef ENABLE_WIFI_REMOTE_CONTROL_DRIVER
@@ -49,15 +42,14 @@
   #define WLAN_PASS       ""
   // Security can be WLAN_SEC_UNSEC, WLAN_SEC_WEP, WLAN_SEC_WPA or WLAN_SEC_WPA2
   #define WLAN_SECURITY   WLAN_SEC_UNSEC
-  byte mqttServerHost[] = { 192, 168, 0, 100};
+  byte mqttServerHost[] = { 192, 168, 0, 101};
   int mqttServerPort = 1883;
   #include "wifi_remote_control.h"
 #endif
 
 #include "logging.h"
 #include "moving_average.h"
-
-#define REMOTE 0
+#include "azdroid_features.h"
 
 namespace Azdroid
 {
@@ -68,9 +60,11 @@ public:
          * @brief Class constructor.
      */
     Robot(): 
-      leftMotor(LEFT_MOTOR_INIT), rightMotor(RIGHT_MOTOR_INIT), 
-      distanceSensor(DISTANCE_SENSOR_INIT), distanceAverage(TOO_CLOSE * 10),
-      remoteControl()
+      leftMotor(LEFT_MOTOR_INIT), rightMotor(RIGHT_MOTOR_INIT),
+      remoteControl(),
+      features(),
+      distanceSensor(DISTANCE_SENSOR_INIT, features.getTooCloseDistance() * 10),
+      distanceAverage(features.getTooCloseDistance() * 10) 
       {
       }
 
@@ -80,7 +74,7 @@ public:
     void initialize()
     {
       Serial.println("Initializing Robot...");
-      if(isRemoteMode())
+      if(features.isRemoteMode())
       {
          remoteControl.initialize();
       }
@@ -89,14 +83,14 @@ public:
         move();
       }
     }
-
+    
     /*
      * @brief Update the state of the robot based on input from sensor and remote control.
      *  Must be called repeatedly while the robot is in operation.
      */
     void run()
     {
-      if(isRemoteMode())
+      if(features.isRemoteMode())
       {
         RemoteControlDriver::command_t remoteCmd;
         bool haveRemoteCmd = remoteControl.getRemoteCommand(remoteCmd);
@@ -157,8 +151,8 @@ protected:
 
     void move()
     {
-      leftMotor.setSpeed(SPEED);
-      rightMotor.setSpeed(SPEED);
+      leftMotor.setSpeed(features.getSpeed());
+      rightMotor.setSpeed(features.getSpeed());
       state = stateMoving;
     }
 
@@ -172,7 +166,7 @@ protected:
 
     bool obstacleAhead(unsigned int distance)
     {
-      return (distance <= TOO_CLOSE);
+      return (distance <= features.getTooCloseDistance());
     }
 
     bool turn(unsigned long currentTime)
@@ -185,15 +179,14 @@ protected:
       {
         turnRight(leftMotor, rightMotor);
       }
-      //            }
       state = stateTurning;
       endStateTime = currentTime + random(500, 1000);
     }
 
     void reverse(unsigned long currentTime)
     {
-      leftMotor.setSpeed(-SPEED);
-      rightMotor.setSpeed(-SPEED);
+      leftMotor.setSpeed(-features.getSpeed());
+      rightMotor.setSpeed(-features.getSpeed());
       state = stateReversing;
       endStateTime = currentTime + random(500, 1000);
     }
@@ -201,7 +194,7 @@ protected:
     bool doneTurning(unsigned long currentTime, unsigned int distance)
     {
       if (currentTime >= endStateTime)
-        return (distance > TOO_CLOSE);
+        return (distance > features.getTooCloseDistance());
       return false;
     }
 
@@ -240,6 +233,7 @@ private:
     enum state_t {stateStopped, stateMoving, stateTurning, stateRemote, stateReversing};
     state_t state;
     unsigned long endStateTime;
+    AzdroidFeatures features;
     
     void turnLeft(Motor &leftMotor, Motor &rightMotor)
     {
@@ -253,13 +247,8 @@ private:
     
     void turn(Motor &motor1, Motor &motor2)
     {
-      motor1.setSpeed(-SPEED);
-      motor2.setSpeed(SPEED);
-    }
-    
-    bool isRemoteMode()
-    {
-      return REMOTE;
+      motor1.setSpeed(-features.getSpeed());
+      motor2.setSpeed(features.getSpeed());
     }
   };
 };
@@ -272,11 +261,13 @@ void setup()
   Serial.println("--------------------------");
   Serial.println("|  A  Z  D  R  O  I  D   |");
   Serial.println("--------------------------\n\n");
+  wdt_enable(WDTO_8S); // enable watch dog timer (https://tushev.org/articles/arduino/5/arduino-and-watchdog-timer)
   robot.initialize();
 }
 
 void loop()
 {
+  wdt_reset(); // kick the watchdog
   robot.run();
 }
 
