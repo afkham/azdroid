@@ -48,7 +48,7 @@ namespace Azdroid
         /**
           * @brief Class constructor.
           */
-        RemoteControl() : RemoteControlDriver(), lastKey(command_t::keyNone),
+        RemoteControl() : RemoteControlDriver(),
                            cc3000(ADAFRUIT_CC3000_CS, ADAFRUIT_CC3000_IRQ, ADAFRUIT_CC3000_VBAT, SPI_CLOCK_DIVIDER),
                            callback(),
                            client(mqttServerHost, mqttServerPort, &callback, cc3000)
@@ -94,10 +94,8 @@ namespace Azdroid
             wdt_reset();
         }
         
-        virtual bool getRemoteCommand(command_t& cmd)
+        virtual bool checkRemoteCommand()
         {
-            cmd.stop();
-            cmd.key = command_t::keyNone;
             // client.publish("azdroid/out","Hearbeat from azdroid-007");
             bool connected = client.loop();
             if(!connected) 
@@ -119,48 +117,28 @@ namespace Azdroid
             Serial.println(lastCmd);
             switch (ch) {
                 case '0': // stop
-                    cmd.stop();
+                    stop();
                     break;
                 case '8': // up
-                    cmd.goForward();
+                    goForward();
                     break;
                 case '2': // down
-                    cmd.goBack();
+                    goBack();
                     break;
                 case '4': // left
-                    cmd.turnLeft();
+                    turnLeft();
                     break;
                 case '6': // right
-                    cmd.turnRight();
+                    turnRight();
                     break;
-                case 'A': // function key #1
-                case 'C':
-                    cmd.key = command_t::keyF1;
-                    break;
-                case 'B': // function key #2
-                case 'D':
-                    cmd.key = command_t::keyF2;
-                    break;
-                case 'E': // function key #3
-                    cmd.key = command_t::keyF3;
-                    break;
-                case 'F': // function key #4
-                    cmd.key = command_t::keyF4;
-                    break;
-                default:
+                default: 
                     break;
             }
-            // callback.clear();
-            if (cmd.key != command_t::keyNone && cmd.key == lastKey) {
-                // repeated key, ignore it
-                return false; 
-            }
-            lastKey = cmd.key;
             return true;
         }
     
     private:
-        command_t::key_t lastKey;
+        
         char lastCmd;
         Adafruit_CC3000 cc3000;
         RemoteControlCallback callback;

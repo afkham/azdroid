@@ -1,3 +1,6 @@
+// Do not remove the include below
+#include "azdroid_firmware.h"
+
 #define LOGGING
 
 #include <avr/wdt.h>
@@ -31,13 +34,13 @@
   #include <ccspi.h>
   #include <SPI.h>
   #include "MqttClient.h"
-  
+
   // These are the interrupt and control pins
   #define ADAFRUIT_CC3000_IRQ   3  // MUST be an interrupt pin!
   // These can be any two pins
   #define ADAFRUIT_CC3000_VBAT  5
   #define ADAFRUIT_CC3000_CS    10
-  
+
   #define WLAN_SSID       "chan_mobile"        // cannot be longer than 32 characters!
   #define WLAN_PASS       ""
   // Security can be WLAN_SEC_UNSEC, WLAN_SEC_WEP, WLAN_SEC_WPA or WLAN_SEC_WPA2
@@ -59,12 +62,14 @@ public:
     /*
          * @brief Class constructor.
      */
-    Robot(): 
+    Robot():
       leftMotor(LEFT_MOTOR_INIT), rightMotor(RIGHT_MOTOR_INIT),
       remoteControl(),
+	  state(stateStopped),
+	  endStateTime(0),
       features(),
       distanceSensor(DISTANCE_SENSOR_INIT, features.getTooCloseDistance() * 10),
-      distanceAverage(features.getTooCloseDistance() * 10) 
+      distanceAverage(features.getTooCloseDistance() * 10)
       {
       }
 
@@ -78,12 +83,12 @@ public:
       {
          remoteControl.initialize();
       }
-      else 
+      else
       {
         move();
       }
     }
-    
+
     /*
      * @brief Update the state of the robot based on input from sensor and remote control.
      *  Must be called repeatedly while the robot is in operation.
@@ -95,16 +100,16 @@ public:
         bool haveRemoteCmd = remoteControl.checkRemoteCommand();
         if(haveRemoteCmd)
         {
-           leftMotor.setSpeed(remoteControl.getLeftSpeed()); 
-           rightMotor.setSpeed(remoteControl.getRightSpeed()); 
+           leftMotor.setSpeed(remoteControl.getLeftSpeed());
+           rightMotor.setSpeed(remoteControl.getRightSpeed());
         }
-      } 
+      }
       else
-      {  
+      {
         unsigned long currentTime = millis();
         int distance = distanceAverage.add(distanceSensor.getDistance());
-  
-        if (moving()) 
+
+        if (moving())
         {
           if (obstacleAhead(distance))
           {
@@ -112,7 +117,7 @@ public:
             reverse(currentTime);
             turn(currentTime);
           }
-        } 
+        }
         else if(reversing())
         {
           if (doneReversing(currentTime))
@@ -120,7 +125,7 @@ public:
             // stop();
             turn(currentTime);
           }
-        } 
+        }
         else if (turning())
         {
           if (doneTurning(currentTime, distance))
@@ -148,7 +153,7 @@ protected:
     {
       leftMotor.setSpeed(0);
       rightMotor.setSpeed(0);
-      delay(1000);  
+      delay(1000);
       state = stateStopped;
     }
 
@@ -157,13 +162,13 @@ protected:
       return (distance <= features.getTooCloseDistance());
     }
 
-    bool turn(unsigned long currentTime)
-    { 
-      if (random(2) == 0) 
+    void turn(unsigned long currentTime)
+    {
+      if (random(2) == 0)
       {
         turnLeft(leftMotor, rightMotor);
       }
-      else 
+      else
       {
         turnRight(leftMotor, rightMotor);
       }
@@ -191,25 +196,27 @@ protected:
       return (currentTime >= endStateTime);
     }
 
-    bool moving() 
-    { 
-      return (state == stateMoving); 
+    bool moving()
+    {
+      return (state == stateMoving);
     }
-    bool reversing() 
-    { 
-      return (state == stateReversing); 
+
+    bool reversing()
+    {
+      return (state == stateReversing);
     }
+
     bool turning()
-    { 
-      return (state == stateTurning); 
+    {
+      return (state == stateTurning);
     }
     bool stopped()
-    { 
-      return (state == stateStopped); 
+    {
+      return (state == stateStopped);
     }
-    bool remoteControlled() 
-    { 
-      return (state == stateRemote); 
+    bool remoteControlled()
+    {
+      return (state == stateRemote);
     }
 
 private:
@@ -222,17 +229,17 @@ private:
     state_t state;
     unsigned long endStateTime;
     AzdroidFeatures features;
-    
+
     void turnLeft(Motor &leftMotor, Motor &rightMotor)
     {
       turn(leftMotor, rightMotor);
     }
-    
+
     void turnRight(Motor &leftMotor, Motor &rightMotor)
     {
       turn(rightMotor, leftMotor);
     }
-    
+
     void turn(Motor &motor1, Motor &motor2)
     {
       motor1.setSpeed(-features.getSpeed());

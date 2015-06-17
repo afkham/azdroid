@@ -18,12 +18,12 @@ namespace Azdroid
           this->collisionAvoidance = collisionAvoidance;
         }
         
-        int getSpeed()
+        unsigned int getSpeed()
         {
           return speed;
         }
         
-        void getSpeed(int speed)
+        void getSpeed(unsigned int speed)
         {
           this->speed = speed;
         }
@@ -38,21 +38,21 @@ namespace Azdroid
           this->remoteMode = remoteMode;;
         }
         
-        int getTooCloseDistance()
+        unsigned int getTooCloseDistance()
         {
           return tooCloseDistance;
         }
         
-        void setTooCloseDistance(int tooCloseDistance)
+        void setTooCloseDistance(unsigned int tooCloseDistance)
         {
           this->tooCloseDistance = tooCloseDistance;
         }
       
       private:
         bool collisionAvoidance;
-        int speed;
+        unsigned int speed;
         bool remoteMode;
-        int tooCloseDistance;
+        unsigned int tooCloseDistance;
     
     };
 
