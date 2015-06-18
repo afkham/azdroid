@@ -4,6 +4,8 @@
 
 #define DEBUG 
 
+//#define ENABLE_WDT
+
 // Device drivers
 // Enable one driver in each category
 
@@ -251,13 +253,17 @@ void setup()
   Serial.println("--------------------------");
   Serial.println("|  A  Z  D  R  O  I  D   |");
   Serial.println("--------------------------\n\n");
+  #ifdef ENABLE_WDT
   wdt_enable(WDTO_8S); // enable watch dog timer (https://tushev.org/articles/arduino/5/arduino-and-watchdog-timer)
+  #endif
   robot.initialize();
 }
 
 void loop()
 {
+  #ifdef ENABLE_WDT
   wdt_reset(); // kick the watchdog
+  #endif
   robot.run();
 }
 

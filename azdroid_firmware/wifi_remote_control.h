@@ -1,5 +1,10 @@
 #include "remote_control.h"
 
+#define COMMAND_IN_TOPIC "azdroid/in"
+#define DATA_OUT_TOPIC "azdroid/out"
+#define CDM_IN_TOPIC "azdroid/cdm/in"
+#define CDM_OUT_TOPIC "azdroid/cdm/out"
+
 namespace Azdroid
 {
 
@@ -9,19 +14,16 @@ namespace Azdroid
         // Callback function
         virtual void callback(char* topic, byte* payload, unsigned int length) 
         {
-          // In order to republish this payload, a copy must be made
-          // as the orignal payload buffer will be overwritten whilst
-          // constructing the PUBLISH packet.
+          String topicStr = String(topic);
           
-          // Allocate the correct amount of memory for the payload copy
-          recdMsg = payload[0];
-          // Copy the payload to the new buffer
-          //memcpy(recdMsg,payload,length);
-          // client.publish("outTopic", p, length);
-          // client.publish("outTopic", "Wuhu... got a message");
-          // Free the memory
-          
-          // free(recdMsg);
+          if (topicStr.equals(COMMAND_IN_TOPIC)) 
+          {
+            recdMsg = payload[0];
+          } 
+          else if (topicStr.equals(CDM_IN_TOPIC))
+          {
+             //TODO: handle CDM messages
+          }
         }
         
         char getMessage()
@@ -55,7 +57,9 @@ namespace Azdroid
         
         virtual void initialize()
         {
+            #ifdef ENABLE_WDT
             wdt_reset();
+            #endif
             Serial.println("Initializing RemoteControl...");
             cc3000.begin();
           
@@ -68,36 +72,46 @@ namespace Azdroid
             displayMACAddress();
             #endif
             
+            #ifdef ENABLE_WDT
             wdt_reset();
+            #endif
             char *ssid = WLAN_SSID;             /* Max 32 chars */
             if (!cc3000.connectToAP(WLAN_SSID, WLAN_PASS, WLAN_SECURITY))
             {
               while(1);
             }
+            #ifdef ENABLE_WDT
             wdt_reset(); 
+            #endif
             while (!cc3000.checkDHCP())
             {
               delay(100); // ToDo: Insert a DHCP timeout!
             }
+            #ifdef ENABLE_WDT
             wdt_reset();
+            #endif
             #ifdef DEBUG
               // Display the IP address DNS, Gateway, etc.
             while (! displayConnectionDetails()) 
             {
               delay(1000);
             }
+            #ifdef ENABLE_WDT
             wdt_reset();
+            #endif
             Serial.println("Connecting to MQTT server...");
             #endif
             if (client.connect("azdroid-007")) 
             {
-              client.publish("azdroid/out","Hello from azdroid-007");
-              client.subscribe("azdroid/in");
+              client.publish(DATA_OUT_TOPIC,"Hello from azdroid-007");
+              client.subscribe(COMMAND_IN_TOPIC);
               #ifdef DEBUG
               Serial.println("MQTT initialization successful");
               #endif
             }  
+            #ifdef ENABLE_WDT
             wdt_reset();
+            #endif
         }
         
         virtual bool checkRemoteCommand()
