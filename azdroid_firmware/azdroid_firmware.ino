@@ -2,6 +2,8 @@
 
 #include <avr/wdt.h>
 
+#define DEBUG 
+
 // Device drivers
 // Enable one driver in each category
 
@@ -42,7 +44,7 @@
   #define WLAN_PASS       ""
   // Security can be WLAN_SEC_UNSEC, WLAN_SEC_WEP, WLAN_SEC_WPA or WLAN_SEC_WPA2
   #define WLAN_SECURITY   WLAN_SEC_UNSEC
-  byte mqttServerHost[] = { 192, 168, 0, 101};
+  byte mqttServerHost[] = { 192, 168, 0, 100};
   int mqttServerPort = 1883;
   #include "wifi_remote_control.h"
 #endif
@@ -95,8 +97,8 @@ public:
         bool haveRemoteCmd = remoteControl.checkRemoteCommand();
         if(haveRemoteCmd)
         {
-           leftMotor.setSpeed(remoteControl.getLeftSpeed()); 
-           rightMotor.setSpeed(remoteControl.getRightSpeed()); 
+           leftMotor.setSpeed(remoteControl.getLeftSpeed());
+           rightMotor.setSpeed(remoteControl.getRightSpeed());
         }
       } 
       else

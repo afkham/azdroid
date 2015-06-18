@@ -9,11 +9,9 @@ namespace Azdroid
        int rightSpeed;
       
     public:
-        RemoteControlDriver() : speed(150), leftSpeed(0), rightSpeed(0)
+        RemoteControlDriver() : speed(255), leftSpeed(0), rightSpeed(0)
         {
         }
-
-        virtual ~RemoteControlDriver(){}
          
         void setSpeed(unsigned int speed)
         {

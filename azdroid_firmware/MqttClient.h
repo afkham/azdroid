@@ -38,14 +38,12 @@ namespace Azdroid {
   class Callback {
   
     public:
-	  virtual ~Callback() {}
       virtual void callback(char*,uint8_t*,unsigned int);
   };
   
   class MqttClient {
   private:
      Adafruit_CC3000* _cc3000;
-  //   Adafruit_CC3000_Client* _client;
      Adafruit_CC3000_Client _client;
      bool clientExists;
      uint8_t buffer[MQTT_MAX_PACKET_SIZE];
@@ -64,12 +62,7 @@ namespace Azdroid {
      uint16_t port;
      Stream* stream;
   public:
-     MqttClient();
-     MqttClient(uint8_t *, uint16_t, void(*)(char*,uint8_t*,unsigned int),Adafruit_CC3000& cc3000);
      MqttClient(uint8_t *, uint16_t, Callback*, Adafruit_CC3000& cc3000);
-     MqttClient(uint8_t *, uint16_t, void(*)(char*,uint8_t*,unsigned int),Adafruit_CC3000& cc3000, Stream&);
-     MqttClient(char*, uint16_t, void(*)(char*,uint8_t*,unsigned int),Adafruit_CC3000& cc3000);
-     MqttClient(char*, uint16_t, void(*)(char*,uint8_t*,unsigned int),Adafruit_CC3000& cc3000, Stream&);
      boolean connect(char *);
      boolean connect(char *, char *, char *);
      boolean connect(char *, char *, uint8_t, uint8_t, char *);
