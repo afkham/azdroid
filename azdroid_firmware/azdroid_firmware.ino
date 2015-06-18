@@ -4,7 +4,7 @@
 
 #define DEBUG 
 
-//#define ENABLE_WDT
+#define ENABLE_WDT
 
 // Device drivers
 // Enable one driver in each category

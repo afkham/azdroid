@@ -105,6 +105,7 @@ namespace Azdroid
             {
               client.publish(DATA_OUT_TOPIC,"Hello from azdroid-007");
               client.subscribe(COMMAND_IN_TOPIC);
+              client.subscribe(CDM_IN_TOPIC);
               #ifdef DEBUG
               Serial.println("MQTT initialization successful");
               #endif
