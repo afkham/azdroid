@@ -23,7 +23,7 @@ namespace Azdroid
           return speed;
         }
         
-        void getSpeed(unsigned int speed)
+        void setSpeed(unsigned int speed)
         {
           this->speed = speed;
         }

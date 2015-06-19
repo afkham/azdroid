@@ -1,6 +1,7 @@
 #define LOGGING
 
 #include <avr/wdt.h>
+#include "azdroid_features.h"
 
 #define DEBUG 
 
@@ -53,7 +54,6 @@
 
 #include "logging.h"
 #include "moving_average.h"
-#include "azdroid_features.h"
 
 namespace Azdroid
 {
@@ -64,9 +64,9 @@ public:
          * @brief Class constructor.
      */
     Robot(): 
-      leftMotor(LEFT_MOTOR_INIT), rightMotor(RIGHT_MOTOR_INIT),
-      remoteControl(),
       features(),
+      leftMotor(LEFT_MOTOR_INIT), rightMotor(RIGHT_MOTOR_INIT),
+      remoteControl(features),
       distanceSensor(DISTANCE_SENSOR_INIT, features.getTooCloseDistance() * 10),
       distanceAverage(features.getTooCloseDistance() * 10) 
       {

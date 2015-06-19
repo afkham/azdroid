@@ -11,6 +11,10 @@ namespace Azdroid
     class RemoteControlCallback : public Callback
     {
     public:
+        RemoteControlCallback(AzdroidFeatures features) :Callback()
+        {
+           this->features = features; 
+        }
         // Callback function
         virtual void callback(char* topic, byte* payload, unsigned int length) 
         {
@@ -22,7 +26,39 @@ namespace Azdroid
           } 
           else if (topicStr.equals(CDM_IN_TOPIC))
           {
-             //TODO: handle CDM messages
+             char *a;
+             char *brkb = (char *)payload;
+             do {
+               a = strtok_r(brkb, "," ,&brkb);
+               if(a != NULL) {
+                 char *k;
+                 char *v;
+                 k = strtok_r(a, "=" ,&v);
+                 //Serial.println(k);
+                 String strK = String(k);
+                 if (strK == "ca") {
+                      Serial.print("Collision Avoidance:"); 
+                      // Serial.println(v);
+                      features.setCollisionAvoidanceEnabled(atoi(v));
+                      Serial.println(features.isCollisionAvoidanceEnabled());
+                 } else if (strK == "sp") {
+                      Serial.print("Speed:"); 
+                      //Serial.println(v);
+                      features.setSpeed(atoi(v));
+                      Serial.println(features.getSpeed());
+                 } else if (strK == "rm") {
+                      Serial.print("Remote Mode:"); 
+                      //Serial.println(v);
+                      features.setRemoteMode(atoi(v));
+                      Serial.println(features.isRemoteMode());
+                 } else if (strK == "tc") {
+                      Serial.print("Too close:"); 
+                      //Serial.println(v);
+                      features.setTooCloseDistance(atoi(v));
+                      Serial.println(features.getTooCloseDistance());
+                 }
+               }
+             } while (a != NULL);
           }
         }
         
@@ -37,7 +73,8 @@ namespace Azdroid
         }
         
       private:
-        char recdMsg;  
+        char recdMsg; 
+        AzdroidFeatures features; 
     };
     
     class RemoteControl : public RemoteControlDriver
@@ -47,12 +84,11 @@ namespace Azdroid
         /**
           * @brief Class constructor.
           */
-        RemoteControl() : RemoteControlDriver(),
+        RemoteControl(AzdroidFeatures features) : RemoteControlDriver(),
                            cc3000(ADAFRUIT_CC3000_CS, ADAFRUIT_CC3000_IRQ, ADAFRUIT_CC3000_VBAT, SPI_CLOCK_DIVIDER),
-                           callback(),
+                           callback(features),
                            client(mqttServerHost, mqttServerPort, &callback, cc3000)
         {
-   
         }
         
         virtual void initialize()
@@ -159,6 +195,7 @@ namespace Azdroid
     private:
         char lastCmd;
         Adafruit_CC3000 cc3000;
+        AzdroidFeatures features;
         RemoteControlCallback callback;
         MqttClient client;
           
