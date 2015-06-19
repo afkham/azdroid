@@ -1,10 +1,11 @@
+
 namespace Azdroid
 {
     class AzdroidFeatures
     {
       
       public:
-        AzdroidFeatures() : collisionAvoidance(false), speed(255), remoteMode(true), tooCloseDistance(10)
+        AzdroidFeatures() : collisionAvoidance(false), speed(100), remoteMode(true), tooCloseDistance(10)
         {
         }
         

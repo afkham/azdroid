@@ -11,7 +11,7 @@ namespace Azdroid
     class RemoteControlCallback : public Callback
     {
     public:
-        RemoteControlCallback(AzdroidFeatures features) :Callback()
+        RemoteControlCallback(AzdroidFeatures* features) :Callback()
         {
            this->features = features; 
         }
@@ -23,6 +23,7 @@ namespace Azdroid
           if (topicStr.equals(COMMAND_IN_TOPIC)) 
           {
             recdMsg = payload[0];
+            Serial.println(recdMsg);
           } 
           else if (topicStr.equals(CDM_IN_TOPIC))
           {
@@ -34,28 +35,25 @@ namespace Azdroid
                  char *k;
                  char *v;
                  k = strtok_r(a, "=" ,&v);
-                 //Serial.println(k);
                  String strK = String(k);
                  if (strK == "ca") {
                       Serial.print("Collision Avoidance:"); 
                       // Serial.println(v);
-                      features.setCollisionAvoidanceEnabled(atoi(v));
-                      Serial.println(features.isCollisionAvoidanceEnabled());
+                      features->setCollisionAvoidanceEnabled(atoi(v));
+                      Serial.println(features->isCollisionAvoidanceEnabled());
                  } else if (strK == "sp") {
                       Serial.print("Speed:"); 
-                      //Serial.println(v);
-                      features.setSpeed(atoi(v));
-                      Serial.println(features.getSpeed());
+                      features->setSpeed(atoi(v));
+                      Serial.println(features->getSpeed());
+                      recdMsg = '0'; // If speed has changed stop & wait for another direction command.
                  } else if (strK == "rm") {
                       Serial.print("Remote Mode:"); 
-                      //Serial.println(v);
-                      features.setRemoteMode(atoi(v));
-                      Serial.println(features.isRemoteMode());
+                      features->setRemoteMode(atoi(v));
+                      Serial.println(features->isRemoteMode());
                  } else if (strK == "tc") {
-                      Serial.print("Too close:"); 
-                      //Serial.println(v);
-                      features.setTooCloseDistance(atoi(v));
-                      Serial.println(features.getTooCloseDistance());
+                      Serial.print("Too close:");
+                      features->setTooCloseDistance(atoi(v));
+                      Serial.println(features->getTooCloseDistance());
                  }
                }
              } while (a != NULL);
@@ -74,7 +72,7 @@ namespace Azdroid
         
       private:
         char recdMsg; 
-        AzdroidFeatures features; 
+        AzdroidFeatures* features; 
     };
     
     class RemoteControl : public RemoteControlDriver
@@ -84,7 +82,7 @@ namespace Azdroid
         /**
           * @brief Class constructor.
           */
-        RemoteControl(AzdroidFeatures features) : RemoteControlDriver(),
+        RemoteControl(AzdroidFeatures* features) : RemoteControlDriver(features),
                            cc3000(ADAFRUIT_CC3000_CS, ADAFRUIT_CC3000_IRQ, ADAFRUIT_CC3000_VBAT, SPI_CLOCK_DIVIDER),
                            callback(features),
                            client(mqttServerHost, mqttServerPort, &callback, cc3000)
@@ -195,7 +193,6 @@ namespace Azdroid
     private:
         char lastCmd;
         Adafruit_CC3000 cc3000;
-        AzdroidFeatures features;
         RemoteControlCallback callback;
         MqttClient client;
           

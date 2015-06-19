@@ -4,18 +4,12 @@ namespace Azdroid
     class RemoteControlDriver
     {
     private:
-       unsigned int speed;
        int leftSpeed;
        int rightSpeed;
       
     public:
-        RemoteControlDriver() : speed(255), leftSpeed(0), rightSpeed(0)
+        RemoteControlDriver(AzdroidFeatures* features) : _features(features), leftSpeed(0), rightSpeed(0)
         {
-        }
-         
-        void setSpeed(unsigned int speed)
-        {
-           this->speed = speed; 
         }
      
         /**
@@ -37,24 +31,30 @@ namespace Azdroid
         }
         
       protected:
+        AzdroidFeatures* _features;
+        
         void goForward()
         {
-            leftSpeed = rightSpeed = speed;
+            leftSpeed = rightSpeed = _features->getSpeed();
         }
+        
         void goBack()
         {
-            leftSpeed = rightSpeed = -speed;
+            leftSpeed = rightSpeed = -_features->getSpeed();
         }
+        
         void turnLeft()
         {
-            leftSpeed = -speed;
-            rightSpeed = speed;
+            leftSpeed = -_features->getSpeed();
+            rightSpeed = _features->getSpeed();
         }
+        
         void turnRight()
         {
-            leftSpeed = speed;
-            rightSpeed = -speed;
+            leftSpeed = _features->getSpeed();
+            rightSpeed = -_features->getSpeed();
         }
+        
         void stop()
         {
             leftSpeed = rightSpeed = 0;

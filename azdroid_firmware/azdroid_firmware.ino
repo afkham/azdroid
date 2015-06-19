@@ -66,7 +66,7 @@ public:
     Robot(): 
       features(),
       leftMotor(LEFT_MOTOR_INIT), rightMotor(RIGHT_MOTOR_INIT),
-      remoteControl(features),
+      remoteControl(&features),
       distanceSensor(DISTANCE_SENSOR_INIT, features.getTooCloseDistance() * 10),
       distanceAverage(features.getTooCloseDistance() * 10) 
       {
